@@ -1,0 +1,56 @@
+diff -urN pyparted-3.4.orig/include/exceptions.h pyparted-3.4/include/exceptions.h
+--- pyparted-3.4.orig/include/exceptions.h	2010-04-29 09:19:26.000000000 -1000
++++ pyparted-3.4/include/exceptions.h	2010-07-07 07:46:30.000000000 -1000
+@@ -41,7 +41,6 @@
+ PyObject *TimerException;
+ PyObject *UnknownDeviceException;
+ PyObject *UnknownTypeException;
+-PyObject *PartedAskException;
+ 
+ extern unsigned int partedExnRaised;
+ extern char *partedExnMessage;
+diff -urN pyparted-3.4.orig/src/_pedmodule.c pyparted-3.4/src/_pedmodule.c
+--- pyparted-3.4.orig/src/_pedmodule.c	2010-04-29 09:19:26.000000000 -1000
++++ pyparted-3.4/src/_pedmodule.c	2010-07-07 07:46:10.000000000 -1000
+@@ -322,8 +322,17 @@
+         case PED_EXCEPTION_WARNING:
+             if (e->options == PED_EXCEPTION_YES_NO) {
+                 partedExnRaised = 1;
+-                PyErr_SetString (PartedAskException, e->message);
+-                return PED_EXCEPTION_CANCEL;
++                partedExnMessage = strdup(e->message);
++
++                if (partedExnMessage == NULL)
++                    PyErr_NoMemory();
++
++                /*
++                 * return 'no' for yes/no question exceptions in libparted,
++                 * prevent any potential disk destruction and pass up an
++                 * exception to our caller
++                 */
++                return PED_EXCEPTION_NO;
+             } else {
+                 partedExnRaised = 0;
+                 return PED_EXCEPTION_IGNORE;
+@@ -553,10 +562,6 @@
+     Py_INCREF(PartedException);
+     PyModule_AddObject(m, "PartedException", PartedException);
+ 
+-    PartedAskException = PyErr_NewException("_ped.PartedAskException", NULL, NULL);
+-    Py_INCREF(PartedAskException);
+-    PyModule_AddObject(m, "PartedAskException", PartedAskException);
+-
+     PartitionException = PyErr_NewException("_ped.PartitionException", NULL,
+                                              NULL);
+     Py_INCREF(PartitionException);
+diff -urN pyparted-3.4.orig/src/parted/__init__.py pyparted-3.4/src/parted/__init__.py
+--- pyparted-3.4.orig/src/parted/__init__.py	2010-04-29 06:15:09.000000000 -1000
++++ pyparted-3.4/src/parted/__init__.py	2010-07-07 07:56:39.000000000 -1000
+@@ -39,7 +39,6 @@
+ from _ped import TimerException
+ from _ped import UnknownDeviceException
+ from _ped import UnknownTypeException
+-from _ped import PartedAskException
+ 
+ from alignment import Alignment
+ from constraint import Constraint

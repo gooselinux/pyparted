@@ -1,0 +1,13 @@
+diff --git a/configure.ac b/configure.ac
+index 165aae3..248ec4d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -18,7 +18,7 @@ dnl Red Hat, Inc.
+ dnl
+ dnl Red Hat Author(s): David Cantrell <dcantrell@redhat.com>
+ 
+-m4_define(libparted_required_version, 2.2)
++m4_define(libparted_required_version, 2.1)
+ m4_define(python_required_version, 2.5)
+ 
+ AC_PREREQ(2.59)
